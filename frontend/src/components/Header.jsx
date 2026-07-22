@@ -19,7 +19,11 @@ function Header() {
         <ul>
           {NAV_LINKS.map((link) => (
             <li key={link.to}>
-              <NavLink to={link.to} end={link.to === "/"}>
+              <NavLink
+                to={link.to}
+                end={link.to === "/"}
+                className={({ isActive }) => (isActive ? "active" : undefined)}
+              >
                 {link.label}
               </NavLink>
             </li>
