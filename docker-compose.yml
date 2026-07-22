@@ -1,0 +1,14 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: cafe_fausse
+      POSTGRES_PASSWORD: cafe_fausse
+      POSTGRES_DB: cafe_fausse
+    ports:
+      - "5432:5432"
+    volumes:
+      - cafe_fausse_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  cafe_fausse_postgres_data:

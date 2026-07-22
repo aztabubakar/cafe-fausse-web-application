@@ -1,0 +1,10 @@
+:root {
+  --color-charcoal: #171717;
+  --color-ivory: #f7f2e8;
+  --color-burgundy: #762a36;
+  --color-gold: #b08d57;
+  --color-gray: #6b6b6b;
+
+  --font-heading: Georgia, "Times New Roman", serif;
+  --font-body: Inter, Arial, Helvetica, sans-serif;
+}
