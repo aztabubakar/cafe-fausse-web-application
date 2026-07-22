@@ -12,7 +12,11 @@ function App() {
   return (
     <>
       <Header />
-      <main id="main-content">
+      {/* tabIndex makes the skip link's target programmatically focusable —
+          without it, activating "Skip to content" leaves focus on <body>
+          and the next Tab press restarts from the top of the page instead
+          of continuing past the header. */}
+      <main id="main-content" tabIndex={-1}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/menu" element={<Menu />} />

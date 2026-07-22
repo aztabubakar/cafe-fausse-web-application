@@ -61,6 +61,26 @@ response" and "do not leave TODO placeholders." Claude Code was asked to:
   trusting the screenshot alone) showed this was a `loading="lazy"` + full-page
   screenshot timing artifact, not a real bug — an example of double-checking a
   surprising result before reporting it as a defect.
+- During the final QA pass, an automated `axe-core` scan found a genuine WCAG AA
+  color-contrast failure on the footer's copyright line (`~3.37:1`, below the 4.5:1
+  minimum) that had gone unnoticed through several prior phases of manual review —
+  fixed with a dedicated `--color-gray-on-dark` token.
+- The same QA pass's keyboard-only navigation audit found that the "Skip to content"
+  link didn't actually work as a skip link: it moved the URL hash but left keyboard
+  focus on `<body>` (because `<main>` had no `tabindex`), so the next Tab press
+  restarted at the top of the page instead of skipping past the header — the exact
+  failure mode skip links exist to prevent. Fixed with `tabIndex={-1}` on `<main>`, and
+  re-verified that focus lands correctly afterward.
+- The QA pass's own timing-measurement script had two of its own bugs on the first
+  attempt: `page.waitForFunction(fn, { timeout: 5000 })` silently passed the timeout
+  object as the function's unused `arg` parameter (not as `options`, which is a
+  3-argument call), producing a bogus ~30-second "measurement" that was actually just
+  Playwright's default timeout; and a `document.querySelector('section')` matched the
+  first `<section>` on the page rather than the newsletter section specifically,
+  causing the retried version to time out at exactly 5000ms with no real signal. Both
+  were caught because the resulting numbers were implausible (30 seconds and a flat
+  5000ms across all 3 trials, respectively) rather than accepted at face value, and
+  fixed before the final timing figures were reported.
 
 ## Human review performed
 
@@ -71,14 +91,19 @@ sessions driving the real dev server against the real Flask backend. No endpoint
 migration, or test result was described as passing without having actually been
 executed and observed. A human collaborator should still independently re-run the full
 verification checklist in `docs/TEST_PLAN.md`, review the reservation/newsletter
-business logic against the SRS line by line, and perform the cross-browser and
-accessibility passes that could not be completed in this Linux/Chromium-only
-environment before treating this as submission-ready.
+business logic against the SRS line by line, and perform the real-browser (Safari/
+Firefox/Edge) and screen-reader passes that could not be completed in this
+Linux/Chromium-only environment before treating this as submission-ready. An automated
+`axe-core` accessibility scan and a keyboard-only navigation audit were completed and
+found (and fixed) two real defects — see `docs/TEST_PLAN.md` §5-6 — but neither
+substitutes for a human using a real screen reader.
 
 ## Known limitations of this AI-assisted process
 
 - All testing in this environment used Chromium only; Safari, Firefox, and Edge have
-  not been exercised against this code.
+  not been exercised against this code. A code-level compatibility audit found no
+  high-risk features, but that is a risk assessment, not a substitute for actually
+  running the site in those browsers.
 - The AI tool cannot verify subjective UX quality (whether the design "feels" upscale
   and fine-dining appropriate) — that judgment call remains with a human reviewer.
 - No security review (e.g., dependency vulnerability scanning, rate limiting) was

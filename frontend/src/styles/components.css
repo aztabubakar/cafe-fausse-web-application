@@ -232,7 +232,7 @@ footer a {
   padding-top: var(--space-md);
   border-top: 1px solid rgba(247, 242, 232, 0.15);
   text-align: center;
-  color: var(--color-gray);
+  color: var(--color-gray-on-dark);
   font-size: 0.9rem;
 }
 

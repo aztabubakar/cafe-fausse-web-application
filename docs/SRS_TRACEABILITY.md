@@ -33,12 +33,12 @@ evidence log.
 | ID | Requirement | Status | Evidence |
 |---|---|---|---|
 | NFR-1 | Load within 3 seconds on broadband | **Supported** | Production build produces small gzip bundles (~84KB JS, ~3KB CSS); images capped at 1920px/quality 78 |
-| NFR-2 | Form submissions processed within 2 seconds | **Supported, not precisely timed** | Newsletter/reservation submissions against the local Flask API were observed to resolve near-instantly in manual and Playwright testing (single-row inserts against a local PostgreSQL instance, no external calls, no artificial delay in the code path), but no stopwatch/instrumented timing measurement was taken — a human reviewer should confirm with browser dev tools' Network tab |
+| NFR-2 | Form submissions processed within 2 seconds | **Implemented and verified** | Instrumented Playwright timing (3 trials each) against the real local Flask + PostgreSQL backend: newsletter 62-66ms, reservation 70-121ms end-to-end (click to rendered result) — see `docs/TEST_PLAN.md` §9 |
 | NFR-3 | Intuitive, easy-to-navigate interface | **Implemented** | Shared header/footer nav, active-page styling, clear CTAs |
 | NFR-4 | Consistent, appealing branding | **Implemented** | `styles/tokens.css` design tokens applied site-wide |
 | NFR-5 | Prevent double/overbooking | **Implemented** | DB-level `UNIQUE(time_slot, table_number)` + bounded-retry transaction in `services/reservations.py`; proven with `seed_full_timeslot.py` + a live 31st-booking attempt returning 409, and a duplicate-table SQL check returning zero rows |
 | NFR-6 | User-friendly failure handling | **Implemented** | Structured `{"error": ..., "details": {...}}` JSON errors, never exposing tracebacks/SQL/credentials (`app/errors.py`); frontend renders friendly field/network/server messages |
-| NFR-7 | Major browser compatibility | **Not yet verified** | Only Chromium was available in this environment; manual Safari/Firefox/Edge checklist still needed (see `docs/TEST_PLAN.md`) |
+| NFR-7 | Major browser compatibility | **Partially verified — Chromium tested, others audited but not run** | Automated (axe-core) and manual accessibility/keyboard testing plus zero console errors confirmed in Chromium; a code-level audit found no CSS/JS features at meaningful risk in current Safari/Firefox/Edge (see `docs/TEST_PLAN.md` §8), but no real Safari/Firefox/Edge session was performed in this environment — still needs a human's manual pass |
 | NFR-8 | Responsive design (desktop/tablet/mobile) | **Implemented and verified** | Automated checks confirm no horizontal scroll at 320/375/768/1024/1440px |
 | NFR-9 | Modular, maintainable, documented code | **Implemented** | Component/service-per-concern structure, centralized data modules, this document, `README.md`, `ai-tooling.md` |
 
@@ -49,5 +49,12 @@ evidence log.
   PostgreSQL, the pytest suite (29 tests) passed, the four endpoints were exercised
   directly with `curl`, and a Playwright browser session drove the real React UI
   against the real Flask API with the resulting rows confirmed in PostgreSQL.
-- NFR-7 (browser compatibility) and full manual accessibility/UX review remain the
-  honest gaps — nothing here claims they passed when they were not actually tested.
+- A final QA pass added an automated accessibility scan (axe-core), a keyboard-only
+  navigation audit, a computed color-contrast audit, and instrumented NFR-2 timing. It
+  found and fixed two real issues: a footer-text color-contrast failure
+  (`--color-gray` on charcoal, ~3.37:1) and a skip-link bug where `<main>` lacked
+  `tabindex`, leaving keyboard focus on `<body>` instead of the content after
+  activating "Skip to content." Both are fixed and re-verified — see
+  `docs/TEST_PLAN.md` §5-6.
+- NFR-7 (real cross-browser sessions) and a screen-reader (NVDA/VoiceOver) pass remain
+  the honest gaps — nothing here claims they passed when they were not actually tested.

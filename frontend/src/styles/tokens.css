@@ -4,6 +4,11 @@
   --color-burgundy: #762a36;
   --color-gold: #b08d57;
   --color-gray: #6b6b6b;
+  /* --color-gray on var(--color-charcoal) is only ~3.4:1, below WCAG AA's
+     4.5:1 for normal text. Use this instead for muted text on dark/charcoal
+     backgrounds (e.g. the footer); --color-gray stays correct as-is for
+     muted text on the light/ivory/white backgrounds it's used on elsewhere. */
+  --color-gray-on-dark: #9a9a9a;
   --color-white: #ffffff;
   --color-error: #9a2f2f;
 
