@@ -15,12 +15,12 @@ function GalleryGrid({ images }) {
     <>
       <ul className="gallery-grid">
         {images.map((image, index) => (
-          <li key={image.id}>
+          <li key={image.id} className="gallery-item">
             <button
               type="button"
               className="gallery-thumb"
               onClick={() => openAt(index)}
-              aria-label={`View enlarged image: ${image.caption}`}
+              aria-label={`View enlarged image: ${image.title}`}
             >
               <img
                 src={image.src}
@@ -31,10 +31,21 @@ function GalleryGrid({ images }) {
                 decoding="async"
               />
             </button>
+            <div className="gallery-item-caption">
+              <p className="gallery-item-title">{image.title}</p>
+              <p className="gallery-item-category">{image.categoryLabel}</p>
+            </div>
           </li>
         ))}
       </ul>
-      <Lightbox image={activeImage} onClose={close} onPrev={showPrev} onNext={showNext} />
+      <Lightbox
+        image={activeImage}
+        index={activeIndex ?? 0}
+        total={images.length}
+        onClose={close}
+        onPrev={showPrev}
+        onNext={showNext}
+      />
     </>
   );
 }

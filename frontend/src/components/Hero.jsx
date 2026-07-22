@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import ResponsiveImage from "./ResponsiveImage.jsx";
 
-function Hero({ image, title, tagline, ctaTo, ctaLabel }) {
+function Hero({ image, title, tagline, actions = [] }) {
   return (
     <section className="hero">
       <ResponsiveImage
@@ -15,10 +15,18 @@ function Hero({ image, title, tagline, ctaTo, ctaLabel }) {
       <div className="hero-overlay">
         <h1>{title}</h1>
         <p>{tagline}</p>
-        {ctaTo ? (
-          <Link className="button button-primary" to={ctaTo}>
-            {ctaLabel}
-          </Link>
+        {actions.length > 0 ? (
+          <div className="hero-actions">
+            {actions.map((action, index) => (
+              <Link
+                key={action.to}
+                className={index === 0 ? "button button-primary" : "button button-secondary"}
+                to={action.to}
+              >
+                {action.label}
+              </Link>
+            ))}
+          </div>
         ) : null}
       </div>
     </section>

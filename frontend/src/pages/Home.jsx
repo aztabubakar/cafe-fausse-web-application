@@ -1,56 +1,54 @@
 import { Link } from "react-router-dom";
+import { useDocumentTitle } from "../hooks/useDocumentTitle.js";
 import Hero from "../components/Hero.jsx";
 import ResponsiveImage from "../components/ResponsiveImage.jsx";
 import AwardCard from "../components/AwardCard.jsx";
 import ReviewCard from "../components/ReviewCard.jsx";
-import { galleryManifest } from "../data/galleryManifest.js";
+import NewsletterForm from "../components/NewsletterForm.jsx";
+import { IMAGES } from "../data/images.js";
 import { menu } from "../data/menu.js";
-import { awards, reviews } from "../data/awardsReviews.js";
+import { awards } from "../data/awards.js";
+import { reviews } from "../data/reviews.js";
+import { contact } from "../data/contact.js";
+import { commitments } from "../data/founders.js";
 
-const heroImage = galleryManifest.find((image) => image.id === "hero-restaurant-interior");
+const introImage = IMAGES.restaurantDiningRoom;
 const featuredDishNames = ["Bruschetta", "Ribeye Steak", "Tiramisu"];
 const featuredDishes = menu
   .flatMap((section) => section.items)
   .filter((item) => featuredDishNames.includes(item.name) && item.image);
 
 function Home() {
+  useDocumentTitle("Café Fausse | Modern Italian Fine Dining in Washington, DC");
+
   return (
     <>
       <Hero
-        image={heroImage}
+        image={IMAGES.heroRestaurantInterior}
         title="Café Fausse"
         tagline="Modern Italian fine dining in the heart of Washington, DC"
-        ctaTo="/reservations"
-        ctaLabel="Reserve a Table"
+        actions={[
+          { to: "/reservations", label: "Reserve a Table" },
+          { to: "/menu", label: "View Menu" },
+        ]}
       />
 
-      <section className="section">
-        <h2>Welcome</h2>
-        <p>
-          Since 2010, Café Fausse has blended traditional Italian flavors with modern
-          culinary innovation, offering a dining experience built on quality, creativity,
-          and warm hospitality.
-        </p>
-      </section>
-
-      <section className="section">
-        <h2>Visit Us</h2>
-        <address>
-          <p>1234 Culinary Ave, Suite 100, Washington, DC 20002</p>
+      <section className="section intro-section">
+        <ResponsiveImage
+          src={introImage.src}
+          alt={introImage.alt}
+          width={introImage.width}
+          height={introImage.height}
+          className="intro-image"
+        />
+        <div>
+          <h2>Traditional Flavor, Modern Craft</h2>
           <p>
-            <a href="tel:+12025554567">(202) 555-4567</a>
+            Café Fausse blends traditional Italian flavors with modern culinary innovation.
+            Since 2010, our kitchen has paired time-honored technique with a seasonal, modern
+            point of view, creating a menu that feels both familiar and new.
           </p>
-        </address>
-        <dl className="hours-list">
-          <div>
-            <dt>Monday&ndash;Saturday</dt>
-            <dd>5:00 PM&ndash;11:00 PM</dd>
-          </div>
-          <div>
-            <dt>Sunday</dt>
-            <dd>5:00 PM&ndash;9:00 PM</dd>
-          </div>
-        </dl>
+        </div>
       </section>
 
       <section className="section">
@@ -59,10 +57,10 @@ function Home() {
           {featuredDishes.map((dish) => (
             <li key={dish.name} className="featured-dish-card">
               <ResponsiveImage
-                src={dish.image}
-                alt={dish.alt}
-                width={dish.width}
-                height={dish.height}
+                src={dish.image.src}
+                alt={dish.image.alt}
+                width={dish.image.width}
+                height={dish.image.height}
                 className="featured-dish-image"
               />
               <p className="featured-dish-name">{dish.name}</p>
@@ -76,17 +74,57 @@ function Home() {
       </section>
 
       <section className="section">
-        <h2>Awards &amp; Reviews</h2>
+        <h2>The Café Fausse Experience</h2>
+        <ul className="commitment-grid">
+          {commitments.map((commitment) => (
+            <li className="commitment-card" key={commitment.title}>
+              <p className="commitment-title">{commitment.title}</p>
+              <p className="commitment-description">{commitment.description}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="section">
+        <h2>Awards</h2>
         <ul className="award-grid">
           {awards.map((award) => (
             <AwardCard key={award.title} {...award} />
           ))}
         </ul>
+      </section>
+
+      <section className="section">
+        <h2>What Guests Are Saying</h2>
         <ul className="review-grid">
           {reviews.map((review) => (
             <ReviewCard key={review.source} {...review} />
           ))}
         </ul>
+      </section>
+
+      <section className="section">
+        <h2>Visit Us</h2>
+        <address>
+          <p>{contact.address}</p>
+          <p>
+            <a href={contact.phoneHref}>{contact.phone}</a>
+          </p>
+        </address>
+        <dl className="hours-list">
+          {contact.hours.map((entry) => (
+            <div key={entry.days}>
+              <dt>{entry.days}</dt>
+              <dd>{entry.time}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+
+      <section className="section">
+        <h2>Stay in Touch</h2>
+        <p>Sign up for our newsletter to hear about seasonal menus and special events.</p>
+        <NewsletterForm />
       </section>
     </>
   );

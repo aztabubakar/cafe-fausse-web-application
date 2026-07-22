@@ -1,30 +1,24 @@
-import chefAntonioRossi from "../assets/images/optimized/chef-antonio-rossi.jpg";
-import mariaLopezRestaurateur from "../assets/images/optimized/maria-lopez-restaurateur.jpg";
+import { IMAGES } from "./images.js";
 
 // History text is exact per the SRS (section 3.1.4, FR-10). Founder
-// biographies are original text written for this project and do not
-// contradict that required history.
+// biographies are original fictional text written for this project; they
+// do not contradict that required history and do not claim any real
+// awards, employers, schools, or credentials.
 export const history =
-  "Café Fausse was founded in 2010 by Chef Antonio Rossi and restaurateur Maria Lopez. It blends traditional Italian flavors with modern culinary innovation. Its mission is to provide an unforgettable dining experience that reflects quality and creativity.";
+  "Founded in 2010 by Chef Antonio Rossi and restaurateur Maria Lopez, Café Fausse blends traditional Italian flavors with modern culinary innovation. Our mission is to provide an unforgettable dining experience that reflects both quality and creativity.";
 
 export const founders = [
   {
     name: "Chef Antonio Rossi",
     role: "Co-Founder & Executive Chef",
-    image: chefAntonioRossi,
-    alt: "Portrait of Chef Antonio Rossi in a white chef's uniform and toque, arms crossed in the kitchen",
-    width: 1280,
-    height: 1920,
-    bio: "Trained in kitchens across northern Italy before honing his craft in Rome and Milan, Antonio brings a classicist's discipline to every plate. He founded Café Fausse in 2010 to give Washington, DC a dining room where traditional Italian technique meets a modern, seasonal point of view. He still walks the line most service nights and personally tastes every dish before it leaves the kitchen.",
+    image: IMAGES.chefAntonioRossi,
+    bio: "Antonio grew up cooking alongside his grandmother in a small kitchen in northern Italy, where he first learned that great food starts with respect for simple, honest ingredients. That grounding in traditional Italian technique has stayed with him through every stage of his career, even as his style has evolved to embrace a more modern, seasonal point of view. As Café Fausse's executive chef, he leads the kitchen with the same discipline he learned as a young cook: every dish is tasted, every plate is checked, and every guest is treated like family.",
   },
   {
     name: "Maria Lopez",
     role: "Co-Founder & Restaurateur",
-    image: mariaLopezRestaurateur,
-    alt: "Portrait of restaurateur Maria Lopez standing behind a display case of plated appetizers",
-    width: 1280,
-    height: 1920,
-    bio: "With a background in hospitality management and years spent running dining rooms up and down the East Coast, Maria shapes the guest experience at Café Fausse from the moment a reservation is made. She partners with regional growers and purveyors, trains the front-of-house team, and believes a great meal is as much about how guests are made to feel as what is on the plate.",
+    image: IMAGES.mariaLopezRestaurateur,
+    bio: "Maria has spent her career in dining rooms, learning that a truly memorable meal is built as much on warmth and attentiveness as it is on what arrives at the table. Her background in restaurant hospitality shaped a deep commitment to service that guides everything at Café Fausse, from the tone of a first greeting to the pace of a long, celebratory dinner. Maria shaped the restaurant's atmosphere from the ground up and continues to focus the entire front-of-house team on one goal: making every visit feel memorable.",
   },
 ];
 
@@ -43,5 +37,15 @@ export const commitments = [
     title: "Locally Sourced Ingredients",
     description:
       "Long-standing partnerships with regional farms and purveyors keep the menu seasonal and the ingredients honest.",
+  },
+  {
+    title: "Creativity",
+    description:
+      "Traditional Italian recipes are reinterpreted with modern technique and a seasonally changing point of view.",
+  },
+  {
+    title: "Warm Hospitality",
+    description:
+      "A welcoming, unhurried dining room where every guest is made to feel like a returning friend.",
   },
 ];

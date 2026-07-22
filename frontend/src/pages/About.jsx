@@ -1,10 +1,13 @@
 import ResponsiveImage from "../components/ResponsiveImage.jsx";
-import { galleryManifest } from "../data/galleryManifest.js";
+import { useDocumentTitle } from "../hooks/useDocumentTitle.js";
+import { IMAGES } from "../data/images.js";
 import { history, founders, commitments } from "../data/founders.js";
 
-const kitchenTeamImage = galleryManifest.find((image) => image.id === "kitchen-team");
+const kitchenTeamImage = IMAGES.kitchenTeam;
 
 function About() {
+  useDocumentTitle("About Us | Café Fausse");
+
   return (
     <section className="section">
       <h1>About Us</h1>
@@ -15,10 +18,10 @@ function About() {
         {founders.map((founder) => (
           <li className="founder-card" key={founder.name}>
             <ResponsiveImage
-              src={founder.image}
-              alt={founder.alt}
-              width={founder.width}
-              height={founder.height}
+              src={founder.image.src}
+              alt={founder.image.alt}
+              width={founder.image.width}
+              height={founder.image.height}
               className="founder-image"
             />
             <p className="founder-name">{founder.name}</p>
@@ -38,18 +41,16 @@ function About() {
         ))}
       </ul>
 
-      {kitchenTeamImage ? (
-        <figure className="about-figure">
-          <ResponsiveImage
-            src={kitchenTeamImage.src}
-            alt={kitchenTeamImage.alt}
-            width={kitchenTeamImage.width}
-            height={kitchenTeamImage.height}
-            className="about-figure-image"
-          />
-          <figcaption>{kitchenTeamImage.caption}</figcaption>
-        </figure>
-      ) : null}
+      <figure className="about-figure">
+        <ResponsiveImage
+          src={kitchenTeamImage.src}
+          alt={kitchenTeamImage.alt}
+          width={kitchenTeamImage.width}
+          height={kitchenTeamImage.height}
+          className="about-figure-image"
+        />
+        <figcaption>{kitchenTeamImage.caption}</figcaption>
+      </figure>
     </section>
   );
 }

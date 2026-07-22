@@ -13,158 +13,173 @@ import tiramisu from "../assets/images/optimized/tiramisu.jpg";
 import cheesecake from "../assets/images/optimized/cheesecake.jpg";
 import wineGlasses from "../assets/images/optimized/wine-glasses.jpg";
 
-export const GALLERY_CATEGORIES = {
-  INTERIOR: "Interior ambiance",
-  DISHES: "Menu dishes",
-  EVENTS: "Special events",
-  BEHIND_THE_SCENES: "Behind the scenes",
-  STORY: "Founder or restaurant story",
-};
-
-// Every entry maps one supplied file (frontend/src/assets/images/) to the
-// gallery category it best represents, plus the alt text and caption used
-// wherever that image appears on the site. Dimensions match the optimized
-// derivative in assets/images/optimized/ and are used for width/height
-// attributes to prevent layout shift.
-export const galleryManifest = [
-  {
+// Every image on the site is imported exactly once, here. Pages and other
+// data modules (menu.js, founders.js) reference entries from IMAGES rather
+// than importing asset files directly, so each photo has one description,
+// one alt text, and one on-disk source of truth. Dimensions match the
+// optimized derivatives in assets/images/optimized/ (see that folder's
+// README for why they exist) and are used as width/height attributes to
+// prevent layout shift.
+//
+// galleryCategory is one of the Gallery page's filter ids (see
+// GALLERY_FILTERS below) for images that belong in the Gallery grid, or
+// null for images used only elsewhere on the site (the founder portraits
+// appear on the About page instead).
+export const IMAGES = {
+  heroRestaurantInterior: {
     id: "hero-restaurant-interior",
-    file: "hero-restaurant-interior.jpg",
     src: heroRestaurantInterior,
     width: 1920,
     height: 1353,
-    category: GALLERY_CATEGORIES.INTERIOR,
+    title: "Dining Room",
+    galleryCategory: "interior",
     alt: "Warmly lit dining room with wood-paneled walls, patterned tile floor, and tables set for service",
     caption: "Our dining room, set and ready for the evening",
   },
-  {
+  restaurantExterior: {
     id: "restaurant-exterior",
-    file: "restaurant-exterior.jpg",
     src: restaurantExterior,
     width: 1920,
     height: 1277,
-    category: GALLERY_CATEGORIES.INTERIOR,
+    title: "Old-World Elegance",
+    galleryCategory: "interior",
     alt: "Illuminated historic building beside a river at dusk, evoking the old-world elegance behind Café Fausse's design",
     caption: "The old-world elegance that inspires our space",
   },
-  {
+  restaurantDiningRoom: {
     id: "restaurant-dining-room",
-    file: "restaurant-dining-room.jpg",
     src: restaurantDiningRoom,
     width: 1920,
     height: 1280,
-    category: GALLERY_CATEGORIES.EVENTS,
+    title: "Private Event Table",
+    galleryCategory: "events",
     alt: "Long private-dining table set for a special event with candlesticks, white orchids, and wine glasses at each place setting",
     caption: "A private table set for a special occasion",
   },
-  {
+  kitchenTeam: {
     id: "kitchen-team",
-    file: "kitchen-team.jpg",
     src: kitchenTeam,
     width: 1920,
     height: 1080,
-    category: GALLERY_CATEGORIES.BEHIND_THE_SCENES,
+    title: "Kitchen Team",
+    galleryCategory: "behind-the-scenes",
     alt: "Three chefs in white uniforms and toques preparing dishes together at a stainless steel kitchen counter",
     caption: "Our kitchen team at work behind the scenes",
   },
-  {
+  chefAntonioRossi: {
     id: "chef-antonio-rossi",
-    file: "chef-antonio-rossi.jpg",
     src: chefAntonioRossi,
     width: 1280,
     height: 1920,
-    category: GALLERY_CATEGORIES.STORY,
+    title: "Chef Antonio Rossi",
+    galleryCategory: null,
     alt: "Portrait of Chef Antonio Rossi in a white chef's uniform and toque, arms crossed, smiling in the kitchen",
     caption: "Chef Antonio Rossi, co-founder",
   },
-  {
+  mariaLopezRestaurateur: {
     id: "maria-lopez-restaurateur",
-    file: "maria-lopez-restaurateur.jpg",
     src: mariaLopezRestaurateur,
     width: 1280,
     height: 1920,
-    category: GALLERY_CATEGORIES.STORY,
+    title: "Maria Lopez",
+    galleryCategory: null,
     alt: "Portrait of restaurateur Maria Lopez standing behind a display case of plated appetizers",
     caption: "Maria Lopez, co-founder and restaurateur",
   },
-  {
+  bruschetta: {
     id: "bruschetta",
-    file: "bruschetta.jpg",
     src: bruschetta,
     width: 1920,
     height: 1280,
-    category: GALLERY_CATEGORIES.DISHES,
+    title: "Bruschetta",
+    galleryCategory: "cuisine",
     alt: "Close-up of bruschetta: toasted baguette slices topped with diced tomatoes, basil, and olive oil",
     caption: "Bruschetta, a Café Fausse starter",
   },
-  {
+  caesarSalad: {
     id: "caesar-salad",
-    file: "caesar-salad.jpg",
     src: caesarSalad,
     width: 1881,
     height: 1920,
-    category: GALLERY_CATEGORIES.DISHES,
+    title: "Caesar Salad",
+    galleryCategory: "cuisine",
     alt: "Caesar salad with crisp romaine, shaved parmesan, croutons, grilled chicken, and cherry tomatoes on a blue plate",
     caption: "Caesar Salad, a Café Fausse starter",
   },
-  {
+  grilledSalmon: {
     id: "grilled-salmon",
-    file: "grilled-salmon.jpg",
     src: grilledSalmon,
     width: 1920,
     height: 1536,
-    category: GALLERY_CATEGORIES.DISHES,
+    title: "Grilled Salmon",
+    galleryCategory: "cuisine",
     alt: "Grilled salmon fillets over mixed greens and cucumber ribbons, garnished with olives and a crisp tuile",
     caption: "Grilled Salmon, a Café Fausse main course",
   },
-  {
+  ribeyeSteak: {
     id: "ribeye-steak",
-    file: "ribeye-steak.jpg",
     src: ribeyeSteak,
     width: 1920,
     height: 1280,
-    category: GALLERY_CATEGORIES.DISHES,
+    title: "Ribeye Steak",
+    galleryCategory: "cuisine",
     alt: "Seared ribeye steak with grilled vegetables and garlic mashed potatoes, garnished with rosemary",
     caption: "Ribeye Steak, a Café Fausse main course",
   },
-  {
+  vegetableRisotto: {
     id: "vegetable-risotto",
-    file: "vegetable-risotto.jpg",
     src: vegetableRisotto,
     width: 1920,
     height: 1076,
-    category: GALLERY_CATEGORIES.DISHES,
+    title: "Vegetable Risotto",
+    galleryCategory: "cuisine",
     alt: "Creamy Arborio rice risotto topped with sauteed wild mushrooms, parsley, and shaved parmesan",
     caption: "Vegetable Risotto, a Café Fausse main course",
   },
-  {
+  tiramisu: {
     id: "tiramisu",
-    file: "tiramisu.jpg",
     src: tiramisu,
     width: 1920,
     height: 1536,
-    category: GALLERY_CATEGORIES.DISHES,
+    title: "Tiramisu",
+    galleryCategory: "cuisine",
     alt: "Layered tiramisu dusted with cocoa, topped with a tuile and fresh berries",
     caption: "Tiramisu, a Café Fausse dessert",
   },
-  {
+  cheesecake: {
     id: "cheesecake",
-    file: "cheesecake.jpg",
     src: cheesecake,
     width: 1920,
     height: 1536,
-    category: GALLERY_CATEGORIES.DISHES,
+    title: "Cheesecake",
+    galleryCategory: "cuisine",
     alt: "Individual cheesecake topped with berry compote, fresh strawberries, and red currants",
     caption: "Cheesecake, a Café Fausse dessert",
   },
-  {
+  wineGlasses: {
     id: "wine-glasses",
-    file: "wine-glasses.jpg",
     src: wineGlasses,
     width: 1920,
     height: 1666,
-    category: GALLERY_CATEGORIES.DISHES,
+    title: "Red Wine",
+    galleryCategory: "cuisine",
     alt: "A glass of red wine beside a wooden board of cheeses and cured accompaniments",
     caption: "Red wine, a Café Fausse beverage",
   },
+};
+
+export const GALLERY_FILTERS = [
+  { id: "all", label: "All" },
+  { id: "interior", label: "Interior" },
+  { id: "cuisine", label: "Cuisine" },
+  { id: "events", label: "Events" },
+  { id: "behind-the-scenes", label: "Behind the Scenes" },
 ];
+
+const CATEGORY_LABELS = Object.fromEntries(
+  GALLERY_FILTERS.map((filter) => [filter.id, filter.label]),
+);
+
+export const galleryImages = Object.values(IMAGES)
+  .filter((image) => image.galleryCategory)
+  .map((image) => ({ ...image, categoryLabel: CATEGORY_LABELS[image.galleryCategory] }));
