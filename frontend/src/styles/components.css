@@ -805,6 +805,59 @@ footer a {
   color: var(--color-burgundy);
 }
 
+.form-status-error {
+  color: var(--color-error);
+}
+
+.form-status-success {
+  color: #2f6a3f;
+}
+
+.availability-status {
+  margin: -0.5rem 0 var(--space-md);
+  font-size: 0.9rem;
+  color: var(--color-gray);
+}
+
+.reservation-confirmation {
+  margin-bottom: var(--space-lg);
+  padding: var(--space-md);
+  background-color: #f1f7f2;
+  border: 1px solid #2f6a3f;
+  border-radius: var(--radius-md);
+}
+
+.reservation-confirmation-title {
+  margin: 0 0 var(--space-sm);
+  font-family: var(--font-heading);
+  color: #2f6a3f;
+  font-size: 1.1rem;
+}
+
+.reservation-confirmation dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--space-sm) var(--space-md);
+  margin: 0;
+}
+
+.reservation-confirmation dl div {
+  display: flex;
+  flex-direction: column;
+}
+
+.reservation-confirmation dt {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-gray);
+}
+
+.reservation-confirmation dd {
+  margin: 0;
+  font-weight: 600;
+}
+
 .newsletter-form,
 .reservation-form {
   max-width: 640px;

@@ -1,5 +1,6 @@
-import { useId, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import FormField from "./FormField.jsx";
+import { ApiError, checkAvailability, createReservation } from "../services/api.js";
 
 const PARTY_SIZE_OPTIONS = Array.from({ length: 12 }, (_, index) => index + 1);
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -15,6 +16,8 @@ function getTodayDateString() {
 // Monday-Saturday service runs 5:00 PM-11:00 PM with last seating at 9:30 PM;
 // Sunday service runs 5:00 PM-9:00 PM with last seating at 7:30 PM. Slots are
 // built in half-hour steps (integer arithmetic to avoid floating-point drift).
+// The backend enforces the same rules independently — this only shapes the
+// dropdown, it is not the source of truth.
 function getTimeSlotsForDate(dateString) {
   if (!dateString) {
     return [];
@@ -54,6 +57,10 @@ function ReservationForm() {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
+  const [statusTone, setStatusTone] = useState("neutral");
+  const [confirmation, setConfirmation] = useState(null);
+  const [availability, setAvailability] = useState({ state: "idle", tablesRemaining: null });
+  const availabilityRequestRef = useRef(0);
 
   const timeSlotOptions = useMemo(() => getTimeSlotsForDate(date), [date]);
 
@@ -61,6 +68,37 @@ function ReservationForm() {
     setDate(event.target.value);
     setTimeSlot(""); // available slots depend on the date, so reset the choice
   }
+
+  // Soft-check availability as a convenience once both date and time are
+  // picked. If the check fails or is inconclusive, submission stays
+  // enabled — POST /api/reservations is the actual source of truth.
+  useEffect(() => {
+    if (!date || !timeSlot) {
+      setAvailability({ state: "idle", tablesRemaining: null });
+      return;
+    }
+
+    const requestId = availabilityRequestRef.current + 1;
+    availabilityRequestRef.current = requestId;
+    setAvailability({ state: "loading", tablesRemaining: null });
+
+    checkAvailability(`${date}T${timeSlot}:00`)
+      .then((data) => {
+        if (availabilityRequestRef.current !== requestId) {
+          return;
+        }
+        setAvailability({
+          state: data.available ? "available" : "full",
+          tablesRemaining: data.tables_remaining,
+        });
+      })
+      .catch(() => {
+        if (availabilityRequestRef.current !== requestId) {
+          return;
+        }
+        setAvailability({ state: "unknown", tablesRemaining: null });
+      });
+  }, [date, timeSlot]);
 
   function validate() {
     const nextErrors = {};
@@ -70,23 +108,27 @@ function ReservationForm() {
       nextErrors.date = "Please choose a date from today onward.";
     }
     if (!timeSlot) {
-      nextErrors.timeSlot = "Please choose a timeslot.";
+      nextErrors.time_slot = "Please choose a timeslot.";
     }
     const guestsNumber = Number(guests);
     if (!guestsNumber || guestsNumber < 1 || guestsNumber > 12) {
-      nextErrors.guests = "Party size must be between 1 and 12.";
+      nextErrors.number_of_guests = "Party size must be between 1 and 12.";
     }
     if (!name.trim()) {
-      nextErrors.name = "Please enter the name for the reservation.";
+      nextErrors.customer_name = "Please enter the name for the reservation.";
     }
     if (!EMAIL_PATTERN.test(email.trim())) {
-      nextErrors.email = "Please enter a valid email address.";
+      nextErrors.email_address = "Please enter a valid email address.";
     }
     return nextErrors;
   }
 
   async function handleSubmit(event) {
     event.preventDefault();
+    if (isSubmitting) {
+      return;
+    }
+
     const nextErrors = validate();
     setErrors(nextErrors);
 
@@ -96,19 +138,86 @@ function ReservationForm() {
     }
 
     setIsSubmitting(true);
+    setStatusTone("neutral");
+    setStatusMessage("");
+
     try {
-      // Temporary handler: swap this block for
-      // `await createReservation({ date, timeSlot, guests, name, email, phone })`
-      // (see services/api.js) once the reservations endpoint is live. It
-      // must not claim a reservation was saved until the backend confirms it.
-      setStatusMessage("The reservation form is ready for backend connection.");
+      const response = await createReservation({
+        customer_name: name.trim(),
+        email_address: email.trim(),
+        phone_number: phone.trim(),
+        number_of_guests: Number(guests),
+        time_slot: `${date}T${timeSlot}:00`,
+      });
+
+      const timeLabel = timeSlotOptions.find((slot) => slot.value === timeSlot)?.label ?? timeSlot;
+      setConfirmation({
+        reservationId: response.reservation_id,
+        tableNumber: response.table_number,
+        date,
+        timeLabel,
+        guests: response.number_of_guests,
+      });
+      setStatusTone("success");
+      setStatusMessage(response.message);
+      setErrors({});
+
+      // Reset only after a confirmed successful reservation.
+      setDate("");
+      setTimeSlot("");
+      setGuests("2");
+      setName("");
+      setEmail("");
+      setPhone("");
+      setAvailability({ state: "idle", tablesRemaining: null });
+    } catch (error) {
+      setConfirmation(null);
+      setStatusTone("error");
+      if (error instanceof ApiError && error.status === 400 && error.details) {
+        setErrors(error.details);
+        setStatusMessage("Please correct the highlighted fields.");
+      } else if (error instanceof ApiError) {
+        setStatusMessage(error.message);
+      } else {
+        setStatusMessage("Something went wrong. Please try again.");
+      }
     } finally {
       setIsSubmitting(false);
     }
   }
 
+  const isConfirmedFull = availability.state === "full";
+
   return (
     <form className="reservation-form" onSubmit={handleSubmit} noValidate>
+      {confirmation ? (
+        <div className="reservation-confirmation" role="status">
+          <p className="reservation-confirmation-title">Reservation Confirmed</p>
+          <dl>
+            <div>
+              <dt>Confirmation #</dt>
+              <dd>{confirmation.reservationId}</dd>
+            </div>
+            <div>
+              <dt>Table</dt>
+              <dd>{confirmation.tableNumber}</dd>
+            </div>
+            <div>
+              <dt>Date</dt>
+              <dd>{confirmation.date}</dd>
+            </div>
+            <div>
+              <dt>Time</dt>
+              <dd>{confirmation.timeLabel}</dd>
+            </div>
+            <div>
+              <dt>Guests</dt>
+              <dd>{confirmation.guests}</dd>
+            </div>
+          </dl>
+        </div>
+      ) : null}
+
       <div className="form-row">
         <FormField id={`${formId}-date`} label="Reservation Date" required error={errors.date}>
           <input
@@ -128,7 +237,7 @@ function ReservationForm() {
           id={`${formId}-time-slot`}
           label="Timeslot"
           required
-          error={errors.timeSlot}
+          error={errors.time_slot}
           hint={!date ? "Choose a date to see available times." : undefined}
         >
           <select
@@ -137,13 +246,13 @@ function ReservationForm() {
             value={timeSlot}
             onChange={(event) => setTimeSlot(event.target.value)}
             aria-describedby={
-              errors.timeSlot
+              errors.time_slot
                 ? `${formId}-time-slot-error`
                 : !date
                   ? `${formId}-time-slot-hint`
                   : undefined
             }
-            aria-invalid={Boolean(errors.timeSlot)}
+            aria-invalid={Boolean(errors.time_slot)}
             disabled={!date}
             required
           >
@@ -157,15 +266,31 @@ function ReservationForm() {
         </FormField>
       </div>
 
+      {timeSlot ? (
+        <p className="availability-status" aria-live="polite">
+          {availability.state === "loading" && "Checking availability…"}
+          {availability.state === "available" &&
+            `Tables available (${availability.tablesRemaining} remaining).`}
+          {availability.state === "full" && "This time is fully booked. Please choose another time."}
+          {availability.state === "unknown" &&
+            "Could not check availability right now. You can still submit your request."}
+        </p>
+      ) : null}
+
       <div className="form-row">
-        <FormField id={`${formId}-guests`} label="Number of Guests" required error={errors.guests}>
+        <FormField
+          id={`${formId}-guests`}
+          label="Number of Guests"
+          required
+          error={errors.number_of_guests}
+        >
           <select
             id={`${formId}-guests`}
             name="guests"
             value={guests}
             onChange={(event) => setGuests(event.target.value)}
-            aria-describedby={errors.guests ? `${formId}-guests-error` : undefined}
-            aria-invalid={Boolean(errors.guests)}
+            aria-describedby={errors.number_of_guests ? `${formId}-guests-error` : undefined}
+            aria-invalid={Boolean(errors.number_of_guests)}
             required
           >
             {PARTY_SIZE_OPTIONS.map((size) => (
@@ -176,7 +301,7 @@ function ReservationForm() {
           </select>
         </FormField>
 
-        <FormField id={`${formId}-name`} label="Customer Name" required error={errors.name}>
+        <FormField id={`${formId}-name`} label="Customer Name" required error={errors.customer_name}>
           <input
             id={`${formId}-name`}
             name="name"
@@ -184,15 +309,15 @@ function ReservationForm() {
             autoComplete="name"
             value={name}
             onChange={(event) => setName(event.target.value)}
-            aria-describedby={errors.name ? `${formId}-name-error` : undefined}
-            aria-invalid={Boolean(errors.name)}
+            aria-describedby={errors.customer_name ? `${formId}-name-error` : undefined}
+            aria-invalid={Boolean(errors.customer_name)}
             required
           />
         </FormField>
       </div>
 
       <div className="form-row">
-        <FormField id={`${formId}-email`} label="Email Address" required error={errors.email}>
+        <FormField id={`${formId}-email`} label="Email Address" required error={errors.email_address}>
           <input
             id={`${formId}-email`}
             name="email"
@@ -200,8 +325,8 @@ function ReservationForm() {
             autoComplete="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
-            aria-describedby={errors.email ? `${formId}-email-error` : undefined}
-            aria-invalid={Boolean(errors.email)}
+            aria-describedby={errors.email_address ? `${formId}-email-error` : undefined}
+            aria-invalid={Boolean(errors.email_address)}
             required
           />
         </FormField>
@@ -218,11 +343,19 @@ function ReservationForm() {
         </FormField>
       </div>
 
-      <button type="submit" className="button button-primary" disabled={isSubmitting}>
+      <button
+        type="submit"
+        className="button button-primary"
+        disabled={isSubmitting || isConfirmedFull}
+      >
         {isSubmitting ? "Submitting…" : "Request Reservation"}
       </button>
 
-      <p className="form-status" aria-live="polite">
+      <p
+        className={`form-status form-status-${statusTone}`}
+        aria-live="polite"
+        role={statusTone === "error" ? "alert" : undefined}
+      >
         {statusMessage}
       </p>
     </form>

@@ -10,8 +10,7 @@ health_bp = Blueprint("health", __name__)
 def get_health():
     try:
         db.session.execute(text("SELECT 1"))
-        database_status = "connected"
+        return jsonify({"status": "ok", "database": "connected"}), 200
     except Exception:
-        database_status = "unreachable"
-
-    return jsonify({"status": "ok", "database": database_status})
+        db.session.rollback()
+        return jsonify({"status": "error", "database": "unreachable"}), 503

@@ -5,23 +5,175 @@ restaurant, built to the requirements in `docs/Cafe_Fausse_SRS.pdf`.
 
 ## Project status
 
-The frontend is a complete, responsive static React application covering all five required
-pages, an accessible gallery lightbox, and interface-ready newsletter/reservation forms.
-**Backend integration (Flask + PostgreSQL) has not started yet** — see
-[Current phase](#current-phase-and-whats-next) below.
+The application is feature-complete end to end: a responsive React frontend covering all
+five required pages plus an accessible gallery lightbox, and a Flask + PostgreSQL backend
+implementing the newsletter signup and table-reservation system, wired together over a
+RESTful JSON API. See `docs/SRS_TRACEABILITY.md` for the full requirement-by-requirement
+status and `docs/TEST_PLAN.md` / `docs/DEMO_SCRIPT.md` for verification detail.
 
 ## Tech stack
 
 - **Frontend**: React (JSX) + Vite, React Router, plain CSS (Grid/Flexbox)
-- **Backend** (next phase): Flask, PostgreSQL, Flask-SQLAlchemy, Flask-Migrate, Flask-CORS
-- **API**: RESTful JSON over HTTP
+- **Backend**: Flask (application factory + blueprints), Flask-SQLAlchemy, Flask-Migrate,
+  Flask-CORS, Psycopg 3
+- **Database**: PostgreSQL (mandatory — this project does not use SQLite)
+- **API**: RESTful JSON over HTTP, prefixed `/api`
+
+## Architecture
+
+```
+frontend/   Vite + React SPA. Talks to the backend only through
+            src/services/api.js (VITE_API_BASE_URL), never hardcoded URLs.
+backend/    Flask app factory (app/__init__.py:create_app) registering
+            blueprints for health, newsletter, and reservations.
+            SQLAlchemy models + Flask-Migrate own the schema.
+            services/ holds the business logic (customer upsert rules,
+            reservation transaction, availability).
+            validation.py is the single source of server-side validation
+            and business-hour rules, shared by the reservation and
+            availability endpoints.
+```
+
+## Prerequisites
+
+- Node.js 18+ and npm
+- Python 3.11+
+- PostgreSQL 16 (a local install, or the provided `docker-compose.yml`)
+
+## PostgreSQL setup
+
+**Option A — local PostgreSQL install:**
+
+```bash
+sudo -u postgres psql -c "CREATE USER cafe_fausse WITH PASSWORD 'cafe_fausse';"
+sudo -u postgres psql -c "CREATE DATABASE cafe_fausse OWNER cafe_fausse;"
+# A second database is used only by the automated test suite:
+sudo -u postgres psql -c "CREATE DATABASE cafe_fausse_test OWNER cafe_fausse;"
+```
+
+**Option B — Docker Compose (optional, PostgreSQL only):**
+
+```bash
+docker compose up -d
+```
+
+This starts PostgreSQL 16 with database/user `cafe_fausse`, a persistent named volume, and
+a health check on port 5432. Create the `cafe_fausse_test` database the same way as above
+once the container is healthy. Docker is optional — the app works identically against any
+local PostgreSQL 16 server.
+
+## Backend setup
+
+```bash
+cd backend
+python3 -m venv .venv
+source .venv/bin/activate        # Windows: .venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+cp .env.example .env
+```
+
+### Environment variables (`backend/.env`)
+
+```env
+FLASK_APP=wsgi.py
+FLASK_DEBUG=1
+DATABASE_URL=postgresql+psycopg://cafe_fausse:cafe_fausse@localhost:5432/cafe_fausse
+FRONTEND_ORIGIN=http://localhost:5173
+```
+
+Never commit a real `.env` file — both `backend/.env` and `frontend/.env` are git-ignored.
+`FRONTEND_ORIGIN` is the **only** origin Flask-CORS allows in `/api/*` responses; there is
+no wildcard CORS origin anywhere in this codebase.
+
+### Migrations
+
+The schema is owned by Flask-Migrate, not `db.create_all`. `backend/migrations/` is already
+initialized and contains the migration that creates `customers` and `reservations`. To
+apply it to a fresh database:
+
+```bash
+flask db upgrade
+```
+
+If you ever need to generate a new migration after changing `app/models.py`:
+
+```bash
+flask db migrate -m "describe the change"
+flask db upgrade
+```
+
+### Run the backend
+
+```bash
+flask run
+```
+
+Serves the API at `http://localhost:5000`. Confirm it's healthy:
+
+```bash
+curl http://localhost:5000/api/health
+```
+
+### Backend tests
+
+Tests run against a **separate** database (`cafe_fausse_test` by default, or set
+`TEST_DATABASE_URL`) — they never touch the development database. Apply migrations to the
+test database once:
+
+```bash
+TEST_DATABASE_URL=postgresql+psycopg://cafe_fausse:cafe_fausse@localhost:5432/cafe_fausse_test \
+  FLASK_APP=wsgi.py flask db upgrade
+```
+
+Then run the suite:
+
+```bash
+pytest
+```
+
+### Demo / seed scripts
+
+All demo data uses the `@demo.cafefausse.test` email domain so it can be identified and
+removed without touching real records.
+
+```bash
+python scripts/seed_demo_data.py       # a handful of demo customers/reservations
+python scripts/seed_full_timeslot.py   # fills one future timeslot to 30/30, to demo the 409
+python scripts/clear_demo_data.py      # deletes only the @demo.cafefausse.test rows
+```
+
+### Direct SQL verification
+
+```sql
+SELECT * FROM customers ORDER BY customer_id DESC LIMIT 10;
+
+SELECT * FROM reservations ORDER BY reservation_id DESC LIMIT 10;
+
+SELECT time_slot, COUNT(*) AS reservation_count
+FROM reservations
+GROUP BY time_slot
+ORDER BY time_slot;
+
+-- Must always return zero rows:
+SELECT time_slot, table_number, COUNT(*)
+FROM reservations
+GROUP BY time_slot, table_number
+HAVING COUNT(*) > 1;
+```
 
 ## Frontend setup
 
 ```bash
 cd frontend
 npm install
-cp .env.example .env   # sets VITE_API_BASE_URL; not required for the static phase
+cp .env.example .env
+```
+
+`frontend/.env`:
+
+```env
+VITE_API_BASE_URL=http://localhost:5000/api
 ```
 
 ### Development
@@ -32,27 +184,20 @@ npm run dev
 
 Starts the Vite dev server (default `http://localhost:5173`).
 
-### Production build
+### Production build / lint
 
 ```bash
 npm run build
-```
-
-Outputs to `frontend/dist/`. Preview it locally with `npm run preview`.
-
-### Lint
-
-```bash
 npm run lint
 ```
 
-## Pages completed
+## Pages
 
 | Route | Page | Status |
 |---|---|---|
 | `/` | Home | Complete — hero, intro, featured menu, dining experience, awards, reviews, hours, newsletter |
 | `/menu` | Menu | Complete — exact SRS menu content, images, reservation CTA |
-| `/reservations` | Reservations | Interface complete — form validates locally and is wired for backend integration; does not claim a reservation was saved |
+| `/reservations` | Reservations | Complete — real availability check and reservation submission against the Flask API |
 | `/about` | About Us | Complete — required history, founder bios, commitments |
 | `/gallery` | Gallery | Complete — category filters, accessible lightbox, awards, reviews |
 | `*` | Not Found | Complete |
@@ -70,17 +215,71 @@ npm run lint
 Quantic-provided before any public deployment. Do not add further images without
 verifying royalty-free status or AI-generation provenance.
 
-## Current phase and what's next
+## Timezone policy
 
-This phase built the complete static frontend, including form *interfaces* for the
-newsletter and reservations with local validation, loading-state structure, and
-`aria-live` status regions. Their submit handlers are intentionally temporary — they
-validate input and then display a neutral message (e.g. "The reservation form is ready
-for backend connection") rather than a fabricated success message.
+Reservation `time_slot` values are treated as **naive local Washington, DC time** end to
+end — no timezone conversion happens anywhere in the stack:
 
-**Next phase**: build the Flask backend and PostgreSQL database (customers and
-reservations tables, availability checks, random table assignment, newsletter signup
-persistence), then connect `frontend/src/services/api.js` to the real endpoints and
-replace the temporary form handlers with real API calls.
+- The frontend builds `time_slot` as `YYYY-MM-DDTHH:MM:SS` (no `Z`, no UTC offset) from the
+  date/timeslot the guest picked.
+- The backend rejects any `time_slot` string that *does* include timezone information,
+  rather than silently converting it, so local and UTC values are never mixed.
+- PostgreSQL stores it as `timestamp without time zone`.
+- `created_at`/`updated_at` audit timestamps are separate, server-generated bookkeeping
+  fields (`datetime.utcnow()`) and are never used in reservation business logic.
 
-See `docs/SRS_TRACEABILITY.md` for the full requirement-by-requirement status.
+This is a deliberate simplification appropriate for a single-location restaurant; a
+multi-timezone deployment would need a timezone-aware column and explicit conversion at
+the API boundary instead.
+
+## Reservation business rules
+
+Enforced server-side (the frontend also validates locally for immediate feedback, but the
+server is the source of truth):
+
+- Exactly 30 tables, numbered 1–30.
+- 30-minute timeslots only.
+- Monday–Saturday: 5:00 PM–9:30 PM (last seating).
+- Sunday: 5:00 PM–7:30 PM (last seating).
+- Reservation must be in the future.
+- Party size: 1–12 guests.
+- Name and a valid email are required; phone is optional.
+- A table is chosen at random from the tables still open for that exact timeslot.
+- On a simultaneous-booking collision (unique `(time_slot, table_number)` constraint),
+  the transaction rolls back and retries with a freshly computed available-table set, up
+  to 3 attempts, before returning HTTP 409.
+- Newsletter signup is a one-way flag: a reservation never resets `newsletter_signup` from
+  `true` back to `false`.
+
+## Known limitations
+
+- Cross-browser testing was performed only in Chromium (no local access to Safari/Firefox/
+  Edge in this environment) — see `docs/TEST_PLAN.md` for what still needs manual
+  confirmation.
+- No authentication/authorization layer exists; all API endpoints are public, matching the
+  SRS scope (a single-location restaurant site with no admin backend).
+- Email delivery (e.g. a real confirmation email) is out of scope — the API returns a
+  confirmation payload, but no email is sent.
+
+## Troubleshooting
+
+**`GET /api/health` returns 503 / "database": "unreachable"**
+PostgreSQL isn't running or the credentials in `backend/.env` don't match. Check
+`pg_isready -h localhost -p 5432` and that `DATABASE_URL` matches the role/database you
+created above.
+
+**Browser console shows a CORS error**
+`FRONTEND_ORIGIN` in `backend/.env` must exactly match the origin the frontend is served
+from (protocol + host + port), e.g. `http://localhost:5173`. Restart Flask after changing
+it — CORS is configured once at app-factory time.
+
+**`flask db upgrade` fails with "relation already exists"**
+The target database already has these tables from a previous run outside of Alembic.
+Either drop and recreate the database, or stamp it at the current revision with
+`flask db stamp head` if the schema already matches.
+
+## Next steps
+
+With backend integration complete, remaining work is final QA: cross-browser testing,
+a final accessibility pass, and presentation/demo preparation — see the recommended next
+prompt at the end of this phase's report.
