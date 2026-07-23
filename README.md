@@ -191,6 +191,52 @@ npm run build
 npm run lint
 ```
 
+## Deployment
+
+The frontend deploys to **GitHub Pages** (static hosting) and the backend deploys to
+**[Render](https://render.com)** (Flask web service + managed PostgreSQL), since GitHub
+Pages cannot run a Flask process or a database. This is a one-time manual setup;
+after that, pushes to `main` redeploy the frontend automatically.
+
+### 1. Backend (Render)
+
+1. Create a free Render account and connect your GitHub account.
+2. In the Render dashboard: **New > Blueprint**, select this repository. Render reads
+   `render.yaml` at the repo root and provisions:
+   - `cafe-fausse-backend` — a Python web service running
+     `flask db upgrade && gunicorn wsgi:app` (applies migrations, then serves)
+   - `cafe-fausse-db` — a managed PostgreSQL database, wired to the web service via
+     the `DATABASE_URL` environment variable
+3. Once deployed, copy the backend's public URL (e.g.
+   `https://cafe-fausse-backend.onrender.com`).
+4. In the Render service's **Environment** tab, set `FRONTEND_ORIGIN` to your GitHub
+   Pages origin — scheme + host only, no path, e.g. `https://<your-username>.github.io`.
+   (`render.yaml` sets a placeholder value; update it to match your actual username.)
+
+Notes:
+- Render's free web service spins down after inactivity; the first request after idle
+  takes a few extra seconds to wake it up.
+- Render's free PostgreSQL plan expires after a limited period (check Render's current
+  terms) — fine for a coursework demo, not for long-term hosting.
+
+### 2. Frontend (GitHub Pages)
+
+1. In the GitHub repo: **Settings > Pages > Build and deployment > Source**, choose
+   **GitHub Actions**.
+2. In **Settings > Secrets and variables > Actions > Variables**, add a repository
+   variable `VITE_API_BASE_URL` set to `<your-render-backend-url>/api` (e.g.
+   `https://cafe-fausse-backend.onrender.com/api`).
+3. Push to `main` (or run the workflow manually from the Actions tab). The
+   `.github/workflows/deploy-pages.yml` workflow builds the Vite app and publishes it
+   to GitHub Pages.
+4. The site will be live at `https://<your-username>.github.io/cafe-fausse-web-application/`.
+
+If the repo is ever renamed, or forked under a different name, update `base` in
+`frontend/vite.config.js` (and the URL above) to match the new path.
+
+**Before making this public**: revisit the licensing reminder below — confirm the
+supplied photos are cleared for public (not just coursework-internal) use.
+
 ## Pages
 
 | Route | Page | Status |
