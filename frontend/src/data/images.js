@@ -12,6 +12,9 @@ import vegetableRisotto from "../assets/images/optimized/vegetable-risotto.jpg";
 import tiramisu from "../assets/images/optimized/tiramisu.jpg";
 import cheesecake from "../assets/images/optimized/cheesecake.jpg";
 import wineGlasses from "../assets/images/optimized/wine-glasses.jpg";
+import whiteWine from "../assets/images/optimized/white-wine.jpg";
+import craftBeer from "../assets/images/optimized/craft-beer.jpg";
+import espresso from "../assets/images/optimized/espresso.jpg";
 
 // Every image on the site is imported exactly once, here. Pages and other
 // data modules (menu.js, founders.js) reference entries from IMAGES rather
@@ -165,6 +168,36 @@ export const IMAGES = {
     galleryCategory: "cuisine",
     alt: "A glass of red wine beside a wooden board of cheeses and cured accompaniments",
     caption: "Red wine, a Café Fausse beverage",
+  },
+  whiteWine: {
+    id: "white-wine",
+    src: whiteWine,
+    width: 1920,
+    height: 1920,
+    title: "White Wine",
+    galleryCategory: "cuisine",
+    alt: "A glass of white wine beside a plate of creamy pasta garnished with parsley, with grapes in the foreground",
+    caption: "White wine, a Café Fausse beverage",
+  },
+  craftBeer: {
+    id: "craft-beer",
+    src: craftBeer,
+    width: 1920,
+    height: 1440,
+    title: "Craft Beer",
+    galleryCategory: "cuisine",
+    alt: "A glass of amber craft beer with a foam head, with additional glasses in the background",
+    caption: "Craft beer, a Café Fausse beverage",
+  },
+  espresso: {
+    id: "espresso",
+    src: espresso,
+    width: 1920,
+    height: 1536,
+    title: "Espresso",
+    galleryCategory: "cuisine",
+    alt: "Overhead view of a small cup of espresso on a dark saucer, surrounded by scattered ground coffee",
+    caption: "Espresso, a Café Fausse beverage",
   },
 };
 

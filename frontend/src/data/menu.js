@@ -1,8 +1,6 @@
 import { IMAGES } from "./images.js";
 
 // Item names, descriptions, and prices are exact per the SRS (section 3.1.2).
-// Not every beverage has a supplied photo; items without one render without
-// an image rather than a substitute or fabricated photo.
 export const menu = [
   {
     category: "Starters",
@@ -74,16 +72,19 @@ export const menu = [
         name: "White Wine (Glass)",
         description: "Crisp and refreshing",
         price: "$9.00",
+        image: IMAGES.whiteWine,
       },
       {
         name: "Craft Beer",
         description: "Local artisan brews",
         price: "$6.00",
+        image: IMAGES.craftBeer,
       },
       {
         name: "Espresso",
         description: "Strong and aromatic",
         price: "$3.00",
+        image: IMAGES.espresso,
       },
     ],
   },

@@ -215,6 +215,12 @@ npm run lint
 Quantic-provided before any public deployment. Do not add further images without
 verifying royalty-free status or AI-generation provenance.
 
+**Image provenance**: most photos were Quantic-provided. Three beverage photos —
+`white-wine.jpg`, `craft-beer.jpg`, `espresso.jpg` — were separately sourced from
+[Wikimedia Commons](https://commons.wikimedia.org) (openly licensed media) to fill in
+menu items the original photo set didn't cover. Verify their license pages if
+redistributing this project beyond coursework.
+
 ## Timezone policy
 
 Reservation `time_slot` values are treated as **naive local Washington, DC time** end to
