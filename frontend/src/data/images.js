@@ -182,8 +182,8 @@ export const IMAGES = {
   craftBeer: {
     id: "craft-beer",
     src: craftBeer,
-    width: 1920,
-    height: 1440,
+    width: 1440,
+    height: 1920,
     title: "Craft Beer",
     galleryCategory: "cuisine",
     alt: "A glass of amber craft beer with a foam head, with additional glasses in the background",
